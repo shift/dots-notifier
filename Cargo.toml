@@ -1,0 +1,25 @@
+[package]
+name = "dots-notifier"
+version = "0.1.0"
+edition = "2021"
+authors = ["Vincent Palmer <shift@someone.section.me>"]
+description = "A client/server tool to send notifications to all active graphical users on a system."
+
+[dependencies]
+# The core library for asynchronous D-Bus communication
+# Using a more recent version specifier
+zbus = "5"
+
+# The async runtime
+tokio = { version = "1", features = ["full"] }
+
+# For handling multiple futures concurrently
+futures = "0.3"
+
+# For structured, context-aware logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# For robust command-line parsing
+clap = { version = "4.4", features = ["derive"] }
+
