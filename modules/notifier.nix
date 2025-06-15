@@ -21,6 +21,16 @@ let
     User=root
   '';
 
+  dbusPolicyFile = pkgs.writeText "dbus-notifier.conf" ''
+    <!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+     "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+    <busconfig>
+      <policy user="root">
+        <allow own="${dbusName}"/>
+      </policy>
+    </busconfig>
+  '';
+
 in
 {
   options.services.system-notifier = {
@@ -38,9 +48,12 @@ in
     environment.systemPackages = [ notifier-pkg ];
 
     services.dbus.packages = [
-      (pkgs.runCommand "dbus-service-dir" {} ''
+      (pkgs.runCommand "dbus-notifier-config" {} ''
         mkdir -p $out/share/dbus-1/system-services
         cp ${dbusServiceFile} $out/share/dbus-1/system-services/${dbusName}.service
+        
+        mkdir -p $out/share/dbus-1/system.d
+        cp ${dbusPolicyFile} $out/share/dbus-1/system.d/${dbusName}.conf
       '')
     ];
 
