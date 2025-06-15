@@ -76,7 +76,10 @@
           drv = self.packages.${system}.default;
         };
 
-	nixosModules.default = import ./modules/notifier.nix;
+	nixosModules = {
+	  notifier = import ./modules/notifier.nix;
+	  default = self.nixosModules.notifier;
+	};
       }
     );
 }
