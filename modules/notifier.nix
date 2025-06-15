@@ -5,7 +5,7 @@ let
   dbusName = "me.section.Notifier";
 
   notifier-pkg = pkgs.rustPlatform.buildRustPackage {
-    pname = "dots-notify";
+    pname = "dots-notifier";
     version = "0.1.0";
     src = ../.;
     cargoLock.lockFile = ../Cargo.lock;
