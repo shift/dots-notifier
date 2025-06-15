@@ -75,6 +75,8 @@
         apps.default = flake-utils.lib.mkApp {
           drv = self.packages.${system}.default;
         };
+
+	nixosModules.default = import ./modules/notifier.nix;
       }
     );
 }
