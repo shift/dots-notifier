@@ -27,13 +27,13 @@ enum Commands {
 }
 
 // --- D-Bus Interface & Proxy Definitions ---
-const DBUS_INTERFACE_NAME: &str = "de.mycorp.Notifier";
-const DBUS_PATH: &str = "/de/mycorp/Notifier";
+const DBUS_INTERFACE_NAME: &str = "me.section.Notifier";
+const DBUS_PATH: &str = "/me/section/Notifier";
 
 // The SERVICE implementation (for the server)
 struct NotifierService;
 
-#[interface(name = "de.mycorp.Notifier")]
+#[interface(name = "dme.section.Notifier")]
 impl NotifierService {
     async fn send_to_all(&self, title: String, body: String) -> zbus::fdo::Result<()> {
         info!(%title, %body, "Received 'send_to_all' request via D-Bus.");
@@ -104,9 +104,9 @@ async fn run_server() -> Result<(), Box<dyn std::error::Error>> {
 
 // The CLIENT proxy definition
 #[zbus::proxy(
-    interface = "de.mycorp.Notifier",
-    default_service = "de.mycorp.Notifier",
-    default_path = "/de/mycorp/Notifier"
+    interface = "me.section.Notifier",
+    default_service = "me.section.Notifier",
+    default_path = "/me/section/Notifier"
 )]
 trait Notifier {
     async fn send_to_all(&self, title: &str, body: &str) -> zbus::Result<()>;
