@@ -37,14 +37,14 @@ in
     users.groups.${cfg.group} = {};
     environment.systemPackages = [ notifier-pkg ];
 
-    dbus.packages = [
+    services.dbus.packages = [
       (pkgs.runCommand "dbus-service-dir" {} ''
         mkdir -p $out/share/dbus-1/system-services
         cp ${dbusServiceFile} $out/share/dbus-1/system-services/${dbusName}.service
       '')
     ];
 
-    security.polkit.extraRules = ''
+    security.polkit.extraConfig = ''
       polkit.addRule(function(action, subject) {
         if (action.id == "${dbusName}.send_to_all") {
           if (subject.isInGroup("${cfg.group}")) {
