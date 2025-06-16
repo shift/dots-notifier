@@ -56,7 +56,7 @@ impl NotifierService {
         let notification_tasks = users.into_iter().map(|user| {
             let title_clone = title.clone();
             let body_clone = body.clone();
-            tokio::spawn(async move {
+            async move {
                 let user_span = tracing::info_span!("user_notification", uid = user.uid, username = %user.username);
                 let _enter = user_span.enter();
                 if let Err(e) = send_notification_to_user(&user, &title_clone, &body_clone).await {
@@ -64,7 +64,8 @@ impl NotifierService {
                 } else {
                     info!("Notification sent successfully.");
                 }
-            })
+            }
+ 
         });
 
         join_all(notification_tasks).await;
