@@ -5,6 +5,18 @@ let
   dbusName = "me.section.Notifier";
 
   notifier-pkg = pkgs.rustPlatform.buildRustPackage {
+    meta = with lib; {
+      description = "Small utility to allow systemd units to send notifications to graphically logged in users via dbus.";
+      longDescription = ''
+    GNU Hello is a program that prints "Hello, world!" when you run it.
+    It is fully customizable.
+  '';
+      homepage = "https://www.github.com/shift/dots-notifier/";
+      license = licenses.gpl3Plus;
+      maintainers = with maintainers; [ shift ];
+      platforms = platforms.all;
+      mainProgram = "dots-notifier";
+    };
     pname = "dots-notifier";
     version = "0.1.0";
     src = ../.;
@@ -27,6 +39,29 @@ let
     <busconfig>
       <policy user="root">
         <allow own="${dbusName}"/>
+      </policy>
+
+      <policy context="default">
+        <allow own="${dbusName}"/>
+        <allow send_destination="${dbusName}"/>
+      </policy>
+
+      <policy group="wheel">
+        <allow send_destination="${dbusName}"
+           send_interface="${dbusName}"
+           send_member="SendToAll"/>
+      </policy>
+
+      <policy group="broadcast">
+        <allow send_destination="${dbusName}"
+           send_interface="${dbusName}"
+           send_member="SendToAll"/>
+      </policy>
+
+      <policy context="default">
+        <allow send_destination="${dbusName}"
+           send_interface="${dbusName}"
+           send_member="SendToAll"/>
       </policy>
     </busconfig>
   '';
