@@ -33,7 +33,7 @@ const DBUS_PATH: &str = "/me/section/Notifier";
 // The SERVICE implementation (for the server)
 struct NotifierService;
 
-#[interface(name = "dme.section.Notifier")]
+#[interface(name = "me.section.Notifier")]
 impl NotifierService {
     async fn send_to_all(&self, title: String, body: String) -> zbus::fdo::Result<()> {
         info!(%title, %body, "Received 'send_to_all' request via D-Bus.");
