@@ -1,0 +1,45 @@
+{
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "markdown": true,
+    "rust": true,
+    "nix": true,
+    "toml": true,
+    "json": true,
+    "yaml": true
+  },
+  "github.copilot.advanced": {
+    "debug.overrideEngine": "copilot",
+    "length": 500,
+    "inlineSuggestEnable": true
+  },
+  "mcp.servers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["mcp-server-filesystem", "${workspaceFolder}"]
+    },
+    "github": {
+      "command": "npx", 
+      "args": ["mcp-server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_TOKEN}"
+      }
+    },
+    "rust-analyzer": {
+      "command": "rust-analyzer",
+      "args": ["--stdio"]
+    }
+  },
+  "rust-analyzer.enable": true,
+  "rust-analyzer.server.path": "rust-analyzer",
+  "rust-analyzer.cargo.buildScripts.enable": true,
+  "rust-analyzer.procMacro.enable": true,
+  "rust-analyzer.check.command": "clippy",
+  "files.associations": {
+    "*.nix": "nix",
+    "flake.lock": "json"
+  },
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nixd"
+}

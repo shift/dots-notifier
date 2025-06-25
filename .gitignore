@@ -1,0 +1,22 @@
+# Rust build artifacts
+target/
+**/*.rs.bk
+
+# IDE files
+.vscode/settings.json.local
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Nix build results
+result
+result-*
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log

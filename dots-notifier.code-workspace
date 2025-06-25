@@ -1,0 +1,28 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "rust-analyzer.cargo.allFeatures": true,
+    "rust-analyzer.checkOnSave.command": "clippy",
+    "rust-analyzer.checkOnSave.allFeatures": true,
+    "github.copilot.enable": {
+      "*": true,
+      "rust": true,
+      "nix": true,
+      "toml": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "GitHub.copilot",
+      "GitHub.copilot-chat", 
+      "rust-lang.rust-analyzer",
+      "bbenoist.Nix",
+      "ms-vscode.vscode-json",
+      "tamasfe.even-better-toml"
+    ]
+  }
+}
