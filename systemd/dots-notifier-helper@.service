@@ -1,0 +1,15 @@
+[Unit]
+Description=Dots Notifier Helper Service
+Documentation=https://github.com/shift/dots-notifier
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=%i
+Environment="RUST_LOG=error"
+# Allow passing arguments to the helper
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

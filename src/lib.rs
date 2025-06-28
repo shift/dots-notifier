@@ -17,9 +17,53 @@ mod proptests;
 use futures::future::join_all;
 use tracing::{error, info, warn};
 use zbus::interface;
+use std::process::Command;
 
 use crate::session::get_active_graphical_users;
-use crate::notification::send_notification_to_user;
+use crate::types::TargetUser;
+
+/// Send a notification to a user via the helper process
+async fn send_notification_via_helper(
+    user: &TargetUser,
+    title: &str,
+    body: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    // Try systemd-run first (more reliable for user services)
+    let mut cmd = Command::new("systemd-run");
+    cmd.args([
+        "--user",
+        "--uid", &user.uid().to_string(),
+        "--gid", &user.uid().to_string(), // Assume same gid as uid for simplicity
+        "--setenv=USER", &user.username(),
+        "--setenv=USERNAME", &user.username(),
+        "dots-notifier-helper",
+        title,
+        body,
+    ]);
+
+    let output = match cmd.output() {
+        Ok(output) => output,
+        Err(e) => {
+            // Fall back to sudo if systemd-run is not available
+            warn!("systemd-run failed ({}), falling back to sudo", e);
+            let mut sudo_cmd = Command::new("sudo");
+            sudo_cmd.args([
+                "-u", &user.username(),
+                "dots-notifier-helper",
+                title,
+                body,
+            ]);
+            sudo_cmd.output()?
+        }
+    };
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Helper process failed: {}", stderr).into());
+    }
+
+    Ok(())
+}
 
 /// The main NotifierService implementation for D-Bus interface.
 #[derive(Debug, Default)]
@@ -59,7 +103,7 @@ impl NotifierService {
             async move {
                 let user_span = tracing::info_span!("user_notification", uid = user.uid, username = %user.username);
                 let _enter = user_span.enter();
-                if let Err(e) = send_notification_to_user(&user, &title_clone, &body_clone).await {
+                if let Err(e) = send_notification_via_helper(&user, &title_clone, &body_clone).await {
                     error!("Failed to send notification: {}", e);
                 } else {
                     info!("Notification sent successfully.");
@@ -81,5 +125,15 @@ mod tests {
         let service = NotifierService;
         let debug_str = format!("{:?}", service);
         assert!(!debug_str.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_send_notification_via_helper_with_invalid_user() {
+        // Test that the helper function handles invalid users gracefully
+        let invalid_user = TargetUser::new(99999, "nonexistent_user_12345".to_string());
+        let result = send_notification_via_helper(&invalid_user, "Test", "Test").await;
+        
+        // Should fail because the user doesn't exist
+        assert!(result.is_err());
     }
 }
