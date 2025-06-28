@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "dots-notifier-filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem"
+      ],
+      "env": {
+        "ALLOWED_DIRECTORIES": "/home/runner/work/dots-notifier/dots-notifier/src,/home/runner/work/dots-notifier/dots-notifier/modules,/home/runner/work/dots-notifier/dots-notifier"
+      }
+    },
+    "dots-notifier-github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_REPO_OWNER": "shift",
+        "GITHUB_REPO_NAME": "dots-notifier"
+      }
+    }
+  }
+}
