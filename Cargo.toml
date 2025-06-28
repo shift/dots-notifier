@@ -5,6 +5,14 @@ edition = "2021"
 authors = ["Vincent Palmer <shift@someone.section.me>"]
 description = "A client/server tool to send notifications to all active graphical users on a system."
 
+[[bin]]
+name = "dots-notifier"
+path = "src/main.rs"
+
+[[bin]]
+name = "dots-notifier-helper"
+path = "src/helper.rs"
+
 [dependencies]
 # The core library for asynchronous D-Bus communication
 # Using a more recent version specifier
@@ -22,6 +30,9 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # For robust command-line parsing
 clap = { version = "4.4", features = ["derive"] }
+
+# For system calls like getuid() - using nix instead of libc for safety
+nix = { version = "0.30", features = ["user"] }
 
 [dev-dependencies]
 # Testing frameworks and utilities
