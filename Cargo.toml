@@ -23,3 +23,16 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # For robust command-line parsing
 clap = { version = "4.4", features = ["derive"] }
 
+[dev-dependencies]
+# Testing frameworks and utilities
+tokio-test = "0.4"
+proptest = "1.4"
+quickcheck = "1.0"
+quickcheck_macros = "1.0"
+tempfile = "3.8"
+serial_test = "3.0"
+# For async testing
+futures-test = "0.3"
+# Additional test utilities
+pretty_assertions = "1.4"
+

@@ -67,13 +67,44 @@
           # Build inputs are link-time dependencies
           buildInputs = commonBuildInputs;
 
-          # Check phase can be enabled for more rigorous testing
-          doCheck = false;
+          # Enable check phase for testing
+          doCheck = true;
         };
 
         # Default application to run (`nix run`)
         apps.default = flake-utils.lib.mkApp {
           drv = self.packages.${system}.default;
+        };
+
+        # Checks for `nix flake check`
+        checks.default = pkgs.rustPlatform.buildRustPackage {
+          pname = "notify-all-users-tests";
+          version = "1.0.0";
+
+          src = ./.;
+
+          cargoLock = {
+            lockFile = ./Cargo.lock;
+          };
+          
+          nativeBuildInputs = with pkgs; [ pkg-config ];
+          buildInputs = commonBuildInputs;
+
+          # Enable comprehensive testing
+          doCheck = true;
+          
+          # Only run tests, don't build the actual binary
+          buildPhase = ''
+            echo "Running tests via nix flake check"
+          '';
+          
+          checkPhase = ''
+            cargo test --all-features --workspace
+          '';
+          
+          installPhase = ''
+            touch $out
+          '';
         };
 
 	nixosModules = {

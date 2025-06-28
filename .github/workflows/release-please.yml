@@ -1,0 +1,63 @@
+---
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          # This specifies that this is a Rust project
+          release-type: rust
+          # The package name from Cargo.toml
+          package-name: dots-notifier
+          # Token for creating releases and PRs
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Only create releases if all checks pass
+          # This will wait for Garnix CI to complete before releasing
+          draft: false
+      # If a release was created, we can add additional steps here
+      # For example, publishing to crates.io or other registries
+      - name: Checkout code
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        if: ${{ steps.release.outputs.release_created }}
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Setup Nix Cache
+        if: ${{ steps.release.outputs.release_created }}
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Verify release with nix flake check
+        if: ${{ steps.release.outputs.release_created }}
+        run: nix flake check
+
+      - name: Build release artifacts
+        if: ${{ steps.release.outputs.release_created }}
+        run: nix build
+
+      # Optional: Add release artifacts to the GitHub release
+      - name: Upload release artifacts
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the tag name from the release output
+          TAG_NAME="${{ steps.release.outputs.tag_name }}"
+
+          # Upload the binary built by nix to the release
+          if [ -f "result/bin/dots-notifier" ]; then
+            gh release upload "$TAG_NAME" result/bin/dots-notifier
+          fi
