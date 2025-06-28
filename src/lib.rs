@@ -22,20 +22,43 @@ use std::process::Command;
 use crate::session::get_active_graphical_users;
 use crate::types::TargetUser;
 
+/// Validate that a string is safe to use as a command argument.
+/// This prevents command injection by rejecting strings with shell metacharacters.
+fn validate_safe_argument(arg: &str) -> Result<(), Box<dyn std::error::Error>> {
+    // Check for shell metacharacters that could be used for injection
+    const DANGEROUS_CHARS: &[char] = &['&', '|', ';', '`', '$', '(', ')', '{', '}', '[', ']', '<', '>', '\\', '\n', '\r', '\t'];
+    
+    if arg.contains(DANGEROUS_CHARS) {
+        return Err(format!("Argument contains dangerous characters: {}", arg).into());
+    }
+    
+    // Also reject arguments that start with dashes to prevent flag injection
+    if arg.starts_with('-') {
+        return Err(format!("Argument cannot start with dash: {}", arg).into());
+    }
+    
+    Ok(())
+}
+
 /// Send a notification to a user via the helper process
 async fn send_notification_via_helper(
     user: &TargetUser,
     title: &str,
     body: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    // Validate input arguments to prevent command injection
+    validate_safe_argument(title)?;
+    validate_safe_argument(body)?;
+    validate_safe_argument(user.username())?;
+    
     // Try systemd-run first (more reliable for user services)
     let mut cmd = Command::new("systemd-run");
     cmd.args([
         "--user",
         "--uid", &user.uid().to_string(),
         "--gid", &user.uid().to_string(), // Assume same gid as uid for simplicity
-        "--setenv=USER", &user.username(),
-        "--setenv=USERNAME", &user.username(),
+        "--setenv=USER", user.username(),
+        "--setenv=USERNAME", user.username(),
         "dots-notifier-helper",
         title,
         body,
@@ -48,7 +71,7 @@ async fn send_notification_via_helper(
             warn!("systemd-run failed ({}), falling back to sudo", e);
             let mut sudo_cmd = Command::new("sudo");
             sudo_cmd.args([
-                "-u", &user.username(),
+                "-u", user.username(),
                 "dots-notifier-helper",
                 title,
                 body,
@@ -127,6 +150,33 @@ mod tests {
         assert!(!debug_str.is_empty());
     }
 
+    #[test]
+    fn test_validate_safe_argument() {
+        // Valid arguments should pass
+        assert!(validate_safe_argument("hello").is_ok());
+        assert!(validate_safe_argument("hello world").is_ok());
+        assert!(validate_safe_argument("123").is_ok());
+        
+        // Arguments with dangerous characters should fail
+        assert!(validate_safe_argument("hello & world").is_err());
+        assert!(validate_safe_argument("hello | world").is_err());
+        assert!(validate_safe_argument("hello; world").is_err());
+        assert!(validate_safe_argument("hello`world").is_err());
+        assert!(validate_safe_argument("hello$world").is_err());
+        assert!(validate_safe_argument("hello(world)").is_err());
+        assert!(validate_safe_argument("hello{world}").is_err());
+        assert!(validate_safe_argument("hello[world]").is_err());
+        assert!(validate_safe_argument("hello<world>").is_err());
+        assert!(validate_safe_argument("hello\\world").is_err());
+        assert!(validate_safe_argument("hello\nworld").is_err());
+        assert!(validate_safe_argument("hello\rworld").is_err());
+        assert!(validate_safe_argument("hello\tworld").is_err());
+        
+        // Arguments starting with dashes should fail
+        assert!(validate_safe_argument("-flag").is_err());
+        assert!(validate_safe_argument("--option").is_err());
+    }
+
     #[tokio::test]
     async fn test_send_notification_via_helper_with_invalid_user() {
         // Test that the helper function handles invalid users gracefully
@@ -135,5 +185,17 @@ mod tests {
         
         // Should fail because the user doesn't exist
         assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_send_notification_via_helper_with_invalid_args() {
+        // Test that dangerous arguments are rejected
+        let user = TargetUser::new(1000, "testuser".to_string());
+        
+        // Test command injection attempts
+        assert!(send_notification_via_helper(&user, "test & rm -rf /", "body").await.is_err());
+        assert!(send_notification_via_helper(&user, "title", "body | cat /etc/passwd").await.is_err());
+        assert!(send_notification_via_helper(&user, "title", "body; echo dangerous").await.is_err());
+        assert!(send_notification_via_helper(&user, "--help", "body").await.is_err());
     }
 }

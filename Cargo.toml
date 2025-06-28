@@ -31,8 +31,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # For robust command-line parsing
 clap = { version = "4.4", features = ["derive"] }
 
-# For system calls like getuid()
-libc = "0.2"
+# For system calls like getuid() - using nix instead of libc for safety
+nix = { version = "0.30", features = ["user"] }
 
 [dev-dependencies]
 # Testing frameworks and utilities
