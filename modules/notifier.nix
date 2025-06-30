@@ -46,12 +46,6 @@ let
         <allow send_destination="${dbusName}"/>
       </policy>
 
-      <policy group="wheel">
-        <allow send_destination="${dbusName}"
-           send_interface="${dbusName}"
-           send_member="SendToAll"/>
-      </policy>
-
       <policy group="broadcast">
         <allow send_destination="${dbusName}"
            send_interface="${dbusName}"
@@ -80,6 +74,7 @@ in
 
   config = lib.mkIf cfg.enable {
     users.groups.${cfg.group} = {};
+    users.groups.broadcast = {};
     environment.systemPackages = [ notifier-pkg ];
 
     services.dbus.packages = [
