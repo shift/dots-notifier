@@ -384,6 +384,7 @@ dependencies = [
  "clap",
  "futures",
  "futures-test",
+ "nix",
  "pretty_assertions",
  "proptest",
  "quickcheck",
