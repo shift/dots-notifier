@@ -30,7 +30,7 @@ jobs:
       # For example, publishing to crates.io or other registries
       - name: Checkout code
         if: ${{ steps.release.outputs.release_created }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Nix
         if: ${{ steps.release.outputs.release_created }}
